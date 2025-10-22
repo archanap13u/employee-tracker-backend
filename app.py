@@ -1,25 +1,24 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
 import jwt
 import datetime
 import os
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "*"}})  # Change to frontend URL in production
+CORS(app, resources={r"/api/*": {"origins": ["http://localhost:8000", "https://employee-tracker-frontend.vercel.app"]}})
 
-# Configuration
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your-secret-key')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tracker.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI', 'sqlite:///tracker.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
 
-# Database Models
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(120), nullable=False)
-    role = db.Column(db.String(50), default='Administrator')
 
 class Employee(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -45,38 +44,28 @@ class WebsiteUsage(db.Model):
     category = db.Column(db.String(50), default='neutral')
     visits = db.Column(db.Integer, default=0)
 
-# Initialize Database
 with app.app_context():
     db.create_all()
     if not User.query.first():
-        db.session.add(User(username='admin', password='admin123', role='Administrator'))
+        hashed_password = bcrypt.generate_password_hash('admin123').decode('utf-8')
+        db.session.add(User(username='admin', password=hashed_password))
     if not Employee.query.first():
-        demo_employees = [
-            Employee(name='Sarah Johnson', status='active', active_time=6.5, idle_time=0.5, productivity=92, current_activity='VS Code - React Development'),
-            Employee(name='Michael Chen', status='idle', active_time=5.8, idle_time=1.2, productivity=78, current_activity='Idle for 8 minutes'),
-            Employee(name='Emily Davis', status='active', active_time=6.2, idle_time=0.8, productivity=88, current_activity='Figma - UI Design'),
-            Employee(name='James Wilson', status='active', active_time=7.1, idle_time=0.4, productivity=95, current_activity='Chrome - Documentation'),
-            Employee(name='Lisa Brown', status='offline', active_time=4.5, idle_time=0.5, productivity=65, current_activity='Not clocked in')
-        ]
-        db.session.bulk_save_objects(demo_employees)
+        db.session.add(Employee(name='Sarah Johnson', status='active', active_time=6.5, idle_time=0.5, productivity=92, current_activity='VS Code - React Development'))
+        db.session.add(Employee(name='Michael Chen', status='idle', active_time=5.8, idle_time=1.2, productivity=78, current_activity='Idle for 8 minutes'))
+        db.session.add(Employee(name='Emily Davis', status='active', active_time=6.2, idle_time=0.8, productivity=88, current_activity='Figma - UI Design'))
+        db.session.add(Employee(name='James Wilson', status='active', active_time=7.1, idle_time=0.4, productivity=95, current_activity='Chrome - Documentation'))
+        db.session.add(Employee(name='Lisa Brown', status='offline', active_time=4.5, idle_time=0.5, productivity=65, current_activity='Not clocked in'))
     if not AppUsage.query.first():
-        demo_apps = [
-            AppUsage(app_name='VS Code', time_spent=4.5, category='productive', icon='💻'),
-            AppUsage(app_name='Chrome', time_spent=3.2, category='neutral', icon='🌐'),
-            AppUsage(app_name='Slack', time_spent=1.8, category='neutral', icon='💬'),
-            AppUsage(app_name='Figma', time_spent=2.5, category='productive', icon='🎨')
-        ]
-        db.session.bulk_save_objects(demo_apps)
+        db.session.add(AppUsage(app_name='VS Code', time_spent=4.5, category='productive', icon='💻'))
+        db.session.add(AppUsage(app_name='Chrome', time_spent=3.2, category='neutral', icon='🌐'))
+        db.session.add(AppUsage(app_name='Slack', time_spent=1.8, category='neutral', icon='💬'))
+        db.session.add(AppUsage(app_name='Figma', time_spent=2.5, category='productive', icon='🎨'))
     if not WebsiteUsage.query.first():
-        demo_websites = [
-            WebsiteUsage(url='github.com', time_spent=2.5, category='productive', visits=45),
-            WebsiteUsage(url='stackoverflow.com', time_spent=1.8, category='productive', visits=32),
-            WebsiteUsage(url='gmail.com', time_spent=1.2, category='neutral', visits=28)
-        ]
-        db.session.bulk_save_objects(demo_websites)
+        db.session.add(WebsiteUsage(url='github.com', time_spent=2.5, category='productive', visits=45))
+        db.session.add(WebsiteUsage(url='stackoverflow.com', time_spent=1.8, category='productive', visits=32))
+        db.session.add(WebsiteUsage(url='gmail.com', time_spent=1.2, category='neutral', visits=28))
     db.session.commit()
 
-# Authentication
 def authenticate_token():
     auth_header = request.headers.get('Authorization')
     if not auth_header or not auth_header.startswith('Bearer '):
@@ -84,24 +73,24 @@ def authenticate_token():
     token = auth_header.split(' ')[1]
     try:
         data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=['HS256'])
-        return User.query.filter_by(username=data['user']).first()
+        return User.query.filter_by(username=data['username']).first()
     except:
         return None
 
-# API Endpoints
+@app.route('/')
+def home():
+    return {"message": "Employee Tracker Backend API"}, 200
+
 @app.route('/api/auth/login', methods=['POST'])
 def login():
     data = request.get_json()
     user = User.query.filter_by(username=data['username']).first()
-    if user and user.password == data['password']:
+    if user and bcrypt.check_password_hash(user.password, data['password']):
         token = jwt.encode({
-            'user': user.username,
+            'username': user.username,
             'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=24)
-        }, app.config['SECRET_KEY'])
-        return jsonify({
-            'token': token,
-            'user': {'username': user.username, 'role': user.role}
-        })
+        }, app.config['SECRET_KEY'], algorithm='HS256')
+        return jsonify({'token': token})
     return jsonify({'error': 'Invalid credentials'}), 401
 
 @app.route('/api/employees', methods=['GET'])
