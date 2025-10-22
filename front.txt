@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Activity & Performance Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 3em;
+            font-weight: 800;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 1.1em;
+        }
+
+        .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            padding: 8px;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 16px 28px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            color: #64748b;
+            border-radius: 12px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            background: rgba(255, 255, 255, 0.5);
+            color: var(--primary);
+        }
+
+        .tab.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+            padding: 40px;
+            animation: slideIn 0.4s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            padding: 28px;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 0.95em;
+            opacity: 0.95;
+        }
+
+        .activity-tracker {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            border: 2px solid var(--border);
+        }
+
+        .tracker-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .status-online {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+
+        .status-idle {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .status-offline {
+            background: linear-gradient(135deg, #64748b, #475569);
+            color: white;
+        }
+
+        .time-tracker {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 32px;
+        }
+
+        .time-box {
+            background: var(--light);
+            padding: 20px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+        }
+
+        .time-label {
+            font-size: 0.85em;
+            color: #64748b;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .time-value {
+            font-size: 2em;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .activity-log {
+            background: var(--light);
+            border-radius: 12px;
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .activity-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .activity-item:last-child {
+            border-bottom: none;
+        }
+
+        .activity-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
+            flex-shrink: 0;
+        }
+
+        .activity-content {
+            flex: 1;
+        }
+
+        .activity-text {
+            color: var(--dark);
+            font-weight: 500;
+            font-size: 0.95em;
+        }
+
+        .activity-time {
+            color: #94a3b8;
+            font-size: 0.85em;
+        }
+
+        .app-usage-chart {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 24px;
+            border: 2px solid var(--border);
+        }
+
+        .app-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: var(--light);
+            border-radius: 12px;
+            margin-bottom: 12px;
+        }
+
+        .app-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.3em;
+        }
+
+        .app-info {
+            flex: 1;
+        }
+
+        .app-name {
+            font-weight: 600;
+            color: var(--dark);
+            margin-bottom: 4px;
+        }
+
+        .app-time {
+            font-size: 0.9em;
+            color: #64748b;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--light);
+            border-radius: 8px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 8px;
+            transition: width 0.5s;
+        }
+
+        .productivity-score {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 32px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .score-value {
+            font-size: 4em;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .score-label {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+
+        button {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 14px 32px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #059669);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #dc2626);
+        }
+
+        .employee-card {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 28px;
+            margin-bottom: 24px;
+            transition: all 0.3s;
+        }
+
+        .employee-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 12px 32px rgba(99, 102, 241, 0.15);
+        }
+
+        .website-category {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85em;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .productive {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .neutral {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .unproductive {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 32px;
+            border-radius: 20px;
+            margin-bottom: 32px;
+            border: 2px solid var(--border);
+        }
+
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .timeline-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--primary);
+            margin-top: 6px;
+            flex-shrink: 0;
+        }
+
+        .timeline-content {
+            flex: 1;
+            background: var(--light);
+            padding: 16px;
+            border-radius: 12px;
+        }
+
+        .warning-box {
+            background: #fff7ed;
+            border-left: 4px solid var(--warning);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+
+        .warning-box h3 {
+            color: var(--warning);
+            margin-bottom: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--dark);
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            .tab-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🖥️ Employee Activity Tracker</h1>
+            <p class="subtitle">Real-time monitoring during work hours • Transparent & Policy-Compliant</p>
+        </div>
+
+        <div class="main-content">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('live')">🔴 Live Tracking</button>
+                <button class="tab" onclick="switchTab('employees')">👥 Employees</button>
+                <button class="tab" onclick="switchTab('apps')">💻 Application Usage</button>
+                <button class="tab" onclick="switchTab('websites')">🌐 Website Activity</button>
+                <button class="tab" onclick="switchTab('productivity')">📊 Productivity</button>
+                <button class="tab" onclick="switchTab('reports')">📈 Reports</button>
+                <button class="tab" onclick="switchTab('settings')">⚙️ Settings</button>
+            </div>
+
+            <!-- Live Tracking Tab -->
+            <div id="live" class="tab-content active">
+                <div class="warning-box">
+                    <h3>⚠️ Monitoring Policy Notice</h3>
+                    <p>This system tracks employee activities during work hours on company devices only. All employees have been informed and have acknowledged the monitoring policy. Tracking is transparent and employees can view their own data.</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="activeEmployees">0</div>
+                        <div class="stat-label">👤 Currently Active</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <div class="stat-value" id="totalWorkHours">0h</div>
+                        <div class="stat-label">⏰ Total Hours Today</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                        <div class="stat-value" id="avgProductivity">0%</div>
+                        <div class="stat-label">📊 Avg Productivity</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+                        <div class="stat-value" id="idleTime">0h</div>
+                        <div class="stat-label">💤 Total Idle Time</div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h2>🔴 Real-Time Activity Monitor</h2>
+                    <div id="liveActivityFeed"></div>
+                </div>
+            </div>
+
+            <!-- Employees Tab -->
+            <div id="employees" class="tab-content">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 24px;">
+                    <h2 style="color: var(--dark);">Team Activity Status</h2>
+                    <button onclick="refreshData()">🔄 Refresh</button>
+                </div>
+                <div id="employeeList"></div>
+            </div>
+
+            <!-- Applications Tab -->
+            <div id="apps" class="tab-content">
+                <h2 style="color: var(--dark); margin-bottom: 24px;">Application Usage Analytics</h2>
+                <div id="appUsageList"></div>
+            </div>
+
+            <!-- Websites Tab -->
+            <div id="websites" class="tab-content">
+                <h2 style="color: var(--dark); margin-bottom: 24px;">Website Activity Tracking</h2>
+                <div id="websiteList"></div>
+            </div>
+
+            <!-- Productivity Tab -->
+            <div id="productivity" class="tab-content">
+                <h2 style="color: var(--dark); margin-bottom: 32px;">Productivity Analysis</h2>
+                <div id="productivityContent"></div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div id="reports" class="tab-content">
+                <h2 style="color: var(--dark); margin-bottom: 24px;">Activity Reports</h2>
+                <div class="form-group">
+                    <label>Select Employee</label>
+                    <select id="reportEmployee">
+                        <option value="">All Employees</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Date Range</label>
+                    <select id="reportRange">
+                        <option value="today">Today</option>
+                        <option value="week">This Week</option>
+                        <option value="month">This Month</option>
+                    </select>
+                </div>
+                <button onclick="generateReport()">📄 Generate Report</button>
+                <div id="reportContent" style="margin-top: 32px;"></div>
+            </div>
+
+            <!-- Settings Tab -->
+            <div id="settings" class="tab-content">
+                <h2 style="color: var(--dark); margin-bottom: 24px;">Tracking Settings</h2>
+                
+                <div class="activity-tracker">
+                    <h3 style="margin-bottom: 16px;">Work Hours Configuration</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+                        <div class="form-group">
+                            <label>Work Start Time</label>
+                            <input type="time" id="workStart" value="09:00">
+                        </div>
+                        <div class="form-group">
+                            <label>Work End Time</label>
+                            <input type="time" id="workEnd" value="17:00">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="activity-tracker">
+                    <h3 style="margin-bottom: 16px;">Idle Time Settings</h3>
+                    <div class="form-group">
+                        <label>Idle Timeout (minutes)</label>
+                        <input type="number" id="idleTimeout" value="5" min="1" max="30">
+                        <p style="color: #64748b; font-size: 0.9em; margin-top: 8px;">Time of inactivity before marking as idle</p>
+                    </div>
+                </div>
+
+                <div class="activity-tracker">
+                    <h3 style="margin-bottom: 16px;">Productivity Categories</h3>
+                    <p style="color: #64748b; margin-bottom: 16px;">Configure which websites/apps are considered productive:</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;">
+                        <div>
+                            <h4 style="color: var(--success); margin-bottom: 8px;">✅ Productive</h4>
+                            <div style="background: var(--light); padding: 12px; border-radius: 8px;">
+                                <p style="font-size: 0.9em;">Work tools, development environments, project management</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 style="color: var(--warning); margin-bottom: 8px;">⚠️ Neutral</h4>
+                            <div style="background: var(--light); padding: 12px; border-radius: 8px;">
+                                <p style="font-size: 0.9em;">Email, communication tools, research</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 style="color: var(--danger); margin-bottom: 8px;">❌ Unproductive</h4>
+                            <div style="background: var(--light); padding: 12px; border-radius: 8px;">
+                                <p style="font-size: 0.9em;">Social media, entertainment, shopping</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="btn-success" onclick="saveSettings()">💾 Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let employees = [];
+        let activityLogs = [];
+        let appUsage = [];
+        let websiteVisits = [];
+        let trackingActive = false;
+
+        // Simulated tracking data structure
+        function initializeTracking() {
+            // Sample employees with tracking data
+            employees = [
+                {
+                    id: 1,
+                    name: 'Sarah Johnson',
+                    status: 'active',
+                    clockIn: '09:00',
+                    activeTime: 6.5,
+                    idleTime: 0.5,
+                    productivity: 92,
+                    currentActivity: 'VS Code - Working on React project',
+                    lastActive: new Date()
+                },
+                {
+                    id: 2,
+                    name: 'Michael Chen',
+                    status: 'idle',
+                    clockIn: '08:45',
+                    activeTime: 5.8,
+                    idleTime: 1.2,
+                    productivity: 78,
+                    currentActivity: 'Idle for 8 minutes',
+                    lastActive: new Date(Date.now() - 480000)
+                },
+                {
+                    id: 3,
+                    name: 'Emily Davis',
+                    status: 'active',
+                    clockIn: '09:15',
+                    activeTime: 6.2,
+                    idleTime: 0.8,
+                    productivity: 88,
+                    currentActivity: 'Figma - Designing mobile UI',
+                    lastActive: new Date()
+                },
+                {
+                    id: 4,
+                    name: 'James Wilson',
+                    status: 'offline',
+                    clockIn: '09:00',
+                    activeTime: 4.5,
+                    idleTime: 0.5,
+                    productivity: 65,
+                    currentActivity: 'Not clocked in',
+                    lastActive: new Date(Date.now() - 3600000)
+                }
+            ];
+
+            // Sample app usage data
+            appUsage = [
+                { app: 'VS Code', time: 4.5, category: 'productive', icon: '💻' },
+                { app: 'Chrome', time: 3.2, category: 'neutral', icon: '🌐' },
+                { app: 'Slack', time: 1.8, category: 'neutral', icon: '💬' },
+                { app: 'Figma', time: 2.5, category: 'productive', icon: '🎨' },
+                { app: 'Excel', time: 1.5, category: 'productive', icon: '📊' },
+                { app: 'Spotify', time: 0.8, category: 'unproductive', icon: '🎵' },
+                { app: 'YouTube', time: 0.5, category: 'unproductive', icon: '📺' }
+            ];
+
+            // Sample website visits
+            websiteVisits = [
+                { url: 'github.com', time: 2.5, category: 'productive', visits: 45 },
+                { url: 'stackoverflow.com', time: 1.8, category: 'productive', visits: 32 },
+                { url: 'gmail.com', time: 1.2, category: 'neutral', visits: 28 },
+                { url: 'slack.com', time: 1.5, category: 'neutral', visits: 40 },
+                { url: 'linkedin.com', time: 0.8, category: 'neutral', visits: 15 },
+                { url: 'facebook.com', time: 0.3, category: 'unproductive', visits: 8 },
+                { url: 'twitter.com', time: 0.2, category: 'unproductive', visits: 5 }
+            ];
+
+            // Generate activity logs
+            generateActivityLogs();
+            updateDashboard();
+            renderEmployees();
+        }
+
+        function generateActivityLogs() {
+            activityLogs = [];
+            const activities = [
+                { type: 'clockin', text: 'Clocked in', icon: '🟢' },
+                { type: 'app', text: 'Opened VS Code', icon: '💻' },
+                { type: 'website', text: 'Visited github.com', icon: '🌐' },
+                { type: 'idle', text: 'Became idle', icon: '💤' },
+                { type: 'active', text: 'Resumed activity', icon: '🟢' },
+                { type: 'app', text: 'Switched to Chrome', icon: '🌐' },
+                { type: 'website', text: 'Visited stackoverflow.com', icon: '🔍' },
+                { type: 'break', text: 'Started break', icon: '☕' }
+            ];
+
+            const now = new Date();
+            for (let i = 0; i < 20; i++) {
+                const time = new Date(now - i * 15 * 60000); // 15 min intervals
+                const activity = activities[Math.floor(Math.random() * activities.length)];
+                const employee = employees[Math.floor(Math.random() * employees.length)];
+                
+                activityLogs.push({
+                    ...activity,
+                    employee: employee.name,
+                    time: time,
+                    timeStr: time.toLocaleTimeString()
+                });
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'live') updateLiveFeed();
+            if (tabName === 'employees') renderEmployees();
+            if (tabName === 'apps') renderAppUsage();
+            if (tabName === 'websites') renderWebsites();
+            if (tabName === 'productivity') renderProductivity();
+        }
+
+        function updateDashboard() {
+            const active = employees.filter(e => e.status === 'active').length;
+            document.getElementById('activeEmployees').textContent = active;
+
+            const totalHours = employees.reduce((sum, e) => sum + e.activeTime, 0);
+            document.getElementById('totalWorkHours').textContent = totalHours.toFixed(1) + 'h';
+
+            const avgProd = employees.reduce((sum, e) => sum + e.productivity, 0) / employees.length;
+            document.getElementById('avgProductivity').textContent = Math.round(avgProd) + '%';
+
+            const totalIdle = employees.reduce((sum, e) => sum + e.idleTime, 0);
+            document.getElementById('idleTime').textContent = totalIdle.toFixed(1) + 'h';
+
+            updateLiveFeed();
+        }
+
+        function updateLiveFeed() {
+            const feed = document.getElementById('liveActivityFeed');
+            feed.innerHTML = `
+                <div class="activity-log">
+                    ${activityLogs.slice(0, 15).map(log => `
+                        <div class="activity-item">
+                            <div class="activity-icon" style="background: var(--light);">
+                                ${log.icon}
+                            </div>
+                            <div class="activity-content">
+                                <div class="activity-text">
+                                    <strong>${log.employee}</strong> - ${log.text}
+                                </div>
+                                <div class="activity-time">${log.timeStr}</div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderEmployees() {
+            const list = document.getElementById('employeeList');
+            list.innerHTML = employees.map(emp => {
+                const statusClass = emp.status === 'active' ? 'status-online' : 
+                                   emp.status === 'idle' ? 'status-idle' : 'status-offline';
+                const statusIcon = emp.status === 'active' ? '🟢' : 
+                                  emp.status === 'idle' ? '🟡' : '⚫';
+                const totalTime = emp.activeTime + emp.idleTime;
+                const activePercent = totalTime > 0 ? (emp.activeTime / totalTime * 100).toFixed(1) : 0;
+
+                return `
+                    <div class="employee-card">
+                        <div class="tracker-header">
+                            <div>
+                                <h3 style="color: var(--dark); font-size: 1.5em; margin-bottom: 8px;">
+                                    ${emp.name}
+                                </h3>
+                                <p style="color: #64748b;">
+                                    Clocked in: ${emp.clockIn} • Last active: ${getRelativeTime(emp.lastActive)}
+                                </p>
+                            </div>
+                            <div class="status-badge ${statusClass}">
+                                ${statusIcon} ${emp.status.toUpperCase()}
+                            </div>
+                        </div>
+
+                        <div class="time-tracker">
+                            <div class="time-box">
+                                <div class="time-label">⏰ Active Time</div>
+                                <div class="time-value">${emp.activeTime.toFixed(1)}h</div>
+                            </div>
+                            <div class="time-box">
+                                <div class="time-label">💤 Idle Time</div>
+                                <div class="time-value">${emp.idleTime.toFixed(1)}h</div>
+                            </div>
+                            <div class="time-box">
+                                <div class="time-label">📊 Productivity</div>
+                                <div class="time-value">${emp.productivity}%</div>
+                            </div>
+                            <div class="time-box">
+                                <div class="time-label">🎯 Active Rate</div>
+                                <div class="time-value">${activePercent}%</div>
+                            </div>
+                        </div>
+
+                        <div style="margin: 20px 0;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <strong style="color: var(--dark);">Current Activity:</strong>
+                            </div>
+                            <div style="background: var(--light); padding: 16px; border-radius: 12px; border-left: 4px solid var(--primary);">
+                                <p style="color: #475569; font-size: 1.05em;">${emp.currentActivity}</p>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span style="color: #64748b; font-size: 0.9em;">Activity Progress</span>
+                                <span style="color: var(--primary); font-weight: 600;">${activePercent}%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${activePercent}%"></div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 20px; display: flex; gap: 12px;">
+                            <button onclick="viewEmployeeTimeline(${emp.id})">📅 View Timeline</button>
+                            <button class="btn-success" onclick="viewDetailedReport(${emp.id})">📊 Detailed Report</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function getRelativeTime(date) {
+            const seconds = Math.floor((new Date() - date) / 1000);
+            if (seconds < 60) return `${seconds} seconds ago`;
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes} minute${minutes !== 1 ? 's' : ''} ago`;
+            const hours = Math.floor(minutes / 60);
+            return `${hours} hour${hours !== 1 ? 's' : ''} ago`;
+        }
+
+        function renderAppUsage() {
+            const list = document.getElementById('appUsageList');
+            const totalTime = appUsage.reduce((sum, app) => sum + app.time, 0);
+
+            list.innerHTML = `
+                <div class="app-usage-chart">
+                    <h3 style="margin-bottom: 24px;">Most Used Applications Today</h3>
+                    ${appUsage.sort((a, b) => b.time - a.time).map(app => {
+                        const percent = (app.time / totalTime * 100).toFixed(1);
+                        const categoryClass = app.category === 'productive' ? 'productive' : 
+                                             app.category === 'neutral' ? 'neutral' : 'unproductive';
+                        return `
+                            <div class="app-item">
+                                <div class="app-icon">${app.icon}</div>
+                                <div class="app-info">
+                                    <div class="app-name">
+                                        ${app.app}
+                                        <span class="website-category ${categoryClass}">
+                                            ${app.category}
+                                        </span>
+                                    </div>
+                                    <div class="app-time">${app.time.toFixed(1)} hours • ${percent}% of total time</div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: ${percent}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+
+                <div class="chart-container">
+                    <h3>📊 Application Category Breakdown</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 24px;">
+                        ${calculateCategoryBreakdown()}
+                    </div>
+                </div>
+            `;
+        }
+
+        function calculateCategoryBreakdown() {
+            const productive = appUsage.filter(a => a.category === 'productive').reduce((sum, a) => sum + a.time, 0);
+            const neutral = appUsage.filter(a => a.category === 'neutral').reduce((sum, a) => sum + a.time, 0);
+            const unproductive = appUsage.filter(a => a.category === 'unproductive').reduce((sum, a) => sum + a.time, 0);
+            const total = productive + neutral + unproductive;
+
+            return `
+                <div style="text-align: center; padding: 28px; background: linear-gradient(135deg, #10b981, #059669); color: white; border-radius: 16px;">
+                    <div style="font-size: 2.5em; font-weight: bold;">${productive.toFixed(1)}h</div>
+                    <div style="font-size: 1.1em; margin-top: 8px;">✅ Productive</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;">${((productive/total)*100).toFixed(1)}% of time</div>
+                </div>
+                <div style="text-align: center; padding: 28px; background: linear-gradient(135deg, #f59e0b, #d97706); color: white; border-radius: 16px;">
+                    <div style="font-size: 2.5em; font-weight: bold;">${neutral.toFixed(1)}h</div>
+                    <div style="font-size: 1.1em; margin-top: 8px;">⚠️ Neutral</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;">${((neutral/total)*100).toFixed(1)}% of time</div>
+                </div>
+                <div style="text-align: center; padding: 28px; background: linear-gradient(135deg, #ef4444, #dc2626); color: white; border-radius: 16px;">
+                    <div style="font-size: 2.5em; font-weight: bold;">${unproductive.toFixed(1)}h</div>
+                    <div style="font-size: 1.1em; margin-top: 8px;">❌ Unproductive</div>
+                    <div style="font-size: 0.9em; opacity: 0.9;">${((unproductive/total)*100).toFixed(1)}% of time</div>
+                </div>
+            `;
+        }
+
+        function renderWebsites() {
+            const list = document.getElementById('websiteList');
+            const totalTime = websiteVisits.reduce((sum, w) => sum + w.time, 0);
+            const totalVisits = websiteVisits.reduce((sum, w) => sum + w.visits, 0);
+
+            list.innerHTML = `
+                <div class="stats-grid" style="margin-bottom: 32px;">
+                    <div class="stat-card">
+                        <div class="stat-value">${websiteVisits.length}</div>
+                        <div class="stat-label">🌐 Unique Sites</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #10b981, #059669);">
+                        <div class="stat-value">${totalVisits}</div>
+                        <div class="stat-label">👆 Total Visits</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                        <div class="stat-value">${totalTime.toFixed(1)}h</div>
+                        <div class="stat-label">⏱️ Total Time</div>
+                    </div>
+                </div>
+
+                <div class="app-usage-chart">
+                    <h3 style="margin-bottom: 24px;">Top Visited Websites</h3>
+                    ${websiteVisits.sort((a, b) => b.time - a.time).map(site => {
+                        const percent = (site.time / totalTime * 100).toFixed(1);
+                        const categoryClass = site.category === 'productive' ? 'productive' : 
+                                             site.category === 'neutral' ? 'neutral' : 'unproductive';
+                        const avgTimePerVisit = (site.time * 60 / site.visits).toFixed(1);
+                        return `
+                            <div class="app-item">
+                                <div class="app-icon">🌐</div>
+                                <div class="app-info">
+                                    <div class="app-name">
+                                        ${site.url}
+                                        <span class="website-category ${categoryClass}">
+                                            ${site.category}
+                                        </span>
+                                    </div>
+                                    <div class="app-time">
+                                        ${site.time.toFixed(1)} hours • ${site.visits} visits • 
+                                        ${avgTimePerVisit} min/visit
+                                    </div>
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: ${percent}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function renderProductivity() {
+            const content = document.getElementById('productivityContent');
+            
+            const avgProductivity = employees.reduce((sum, e) => sum + e.productivity, 0) / employees.length;
+            const topPerformer = employees.reduce((max, e) => e.productivity > max.productivity ? e : max, employees[0]);
+            const needsAttention = employees.filter(e => e.productivity < 70);
+
+            content.innerHTML = `
+                <div class="productivity-score">
+                    <div class="score-value">${Math.round(avgProductivity)}%</div>
+                    <div class="score-label">📊 Team Average Productivity Score</div>
+                    <p style="margin-top: 16px; opacity: 0.9;">Based on active time, application usage, and task completion</p>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 32px;">
+                    ${employees.map(emp => {
+                        const scoreColor = emp.productivity >= 85 ? '#10b981' : 
+                                         emp.productivity >= 70 ? '#f59e0b' : '#ef4444';
+                        return `
+                            <div class="chart-container">
+                                <h3 style="margin-bottom: 16px;">${emp.name}</h3>
+                                <div style="position: relative; width: 150px; height: 150px; margin: 20px auto;">
+                                    <svg width="150" height="150" style="transform: rotate(-90deg);">
+                                        <circle cx="75" cy="75" r="60" fill="none" stroke="#e2e8f0" stroke-width="12"/>
+                                        <circle cx="75" cy="75" r="60" fill="none" stroke="${scoreColor}" stroke-width="12"
+                                                stroke-dasharray="${(emp.productivity / 100 * 377)} 377"
+                                                stroke-linecap="round"/>
+                                    </svg>
+                                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center;">
+                                        <div style="font-size: 2em; font-weight: bold; color: ${scoreColor};">${emp.productivity}%</div>
+                                    </div>
+                                </div>
+                                <div style="text-align: center; margin-top: 16px;">
+                                    <div style="color: #64748b; font-size: 0.9em;">
+                                        Active: ${emp.activeTime.toFixed(1)}h • Idle: ${emp.idleTime.toFixed(1)}h
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+
+                <div class="chart-container">
+                    <h3 style="margin-bottom: 20px;">🏆 Top Performer</h3>
+                    <div style="background: linear-gradient(135deg, #10b981, #059669); color: white; padding: 32px; border-radius: 16px; text-align: center;">
+                        <div style="font-size: 2.5em; margin-bottom: 12px;">🥇</div>
+                        <div style="font-size: 1.8em; font-weight: bold; margin-bottom: 8px;">${topPerformer.name}</div>
+                        <div style="font-size: 1.3em; opacity: 0.95;">${topPerformer.productivity}% Productivity Score</div>
+                    </div>
+                </div>
+
+                ${needsAttention.length > 0 ? `
+                    <div class="chart-container" style="border-color: var(--warning);">
+                        <h3 style="color: var(--warning); margin-bottom: 20px;">⚠️ Employees Below 70% Productivity</h3>
+                        ${needsAttention.map(emp => `
+                            <div style="background: #fff7ed; padding: 20px; border-radius: 12px; margin-bottom: 12px; border-left: 4px solid var(--warning);">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <strong style="color: var(--dark); font-size: 1.1em;">${emp.name}</strong>
+                                        <div style="color: #64748b; font-size: 0.9em; margin-top: 4px;">
+                                            Active: ${emp.activeTime.toFixed(1)}h • Idle: ${emp.idleTime.toFixed(1)}h
+                                        </div>
+                                    </div>
+                                    <div style="font-size: 1.8em; font-weight: bold; color: var(--warning);">
+                                        ${emp.productivity}%
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+
+                <div class="chart-container">
+                    <h3 style="margin-bottom: 20px;">💡 Productivity Insights</h3>
+                    <div style="display: grid; gap: 16px;">
+                        <div style="background: #ecfdf5; padding: 20px; border-radius: 12px; border-left: 4px solid #10b981;">
+                            <strong style="color: #059669;">✅ Highest Productivity Hours:</strong>
+                            <p style="color: #64748b; margin-top: 8px;">Peak productivity observed between 10:00 AM - 12:00 PM</p>
+                        </div>
+                        <div style="background: #fff7ed; padding: 20px; border-radius: 12px; border-left: 4px solid #f59e0b;">
+                            <strong style="color: #d97706;">⚠️ Common Distractions:</strong>
+                            <p style="color: #64748b; margin-top: 8px;">Social media usage peaks after lunch hours (2:00 PM - 3:00 PM)</p>
+                        </div>
+                        <div style="background: #eff6ff; padding: 20px; border-radius: 12px; border-left: 4px solid #3b82f6;">
+                            <strong style="color: #2563eb;">💡 Recommendation:</strong>
+                            <p style="color: #64748b; margin-top: 8px;">Schedule important tasks during morning hours when team productivity is highest</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateReport() {
+            const reportContent = document.getElementById('reportContent');
+            const selectedEmp = document.getElementById('reportEmployee').value;
+            const range = document.getElementById('reportRange').value;
+
+            let rangeText = '';
+            if (range === 'today') rangeText = 'Today';
+            if (range === 'week') rangeText = 'This Week';
+            if (range === 'month') rangeText = 'This Month';
+
+            reportContent.innerHTML = `
+                <div class="chart-container">
+                    <h3 style="margin-bottom: 24px;">📄 Activity Report - ${rangeText}</h3>
+                    
+                    <div class="stats-grid" style="margin-bottom: 32px;">
+                        <div class="stat-card">
+                            <div class="stat-value">38.5h</div>
+                            <div class="stat-label">⏰ Total Work Hours</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #10b981, #059669);">
+                            <div class="stat-value">35.2h</div>
+                            <div class="stat-label">✅ Active Time</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                            <div class="stat-value">3.3h</div>
+                            <div class="stat-label">💤 Idle Time</div>
+                        </div>
+                        <div class="stat-card" style="background: linear-gradient(135deg, #ec4899, #db2777);">
+                            <div class="stat-value">91%</div>
+                            <div class="stat-label">📊 Productivity</div>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--light); padding: 24px; border-radius: 12px; margin-bottom: 24px;">
+                        <h4 style="margin-bottom: 16px; color: var(--dark);">📊 Daily Breakdown</h4>
+                        <div class="timeline">
+                            ${generateDailyTimeline()}
+                        </div>
+                    </div>
+
+                    <div style="background: var(--light); padding: 24px; border-radius: 12px;">
+                        <h4 style="margin-bottom: 16px; color: var(--dark);">💻 Most Used Applications</h4>
+                        ${appUsage.slice(0, 5).map((app, i) => `
+                            <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--border);">
+                                <span>${i + 1}. ${app.app}</span>
+                                <strong>${app.time.toFixed(1)}h</strong>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div style="margin-top: 24px; text-align: center;">
+                        <button onclick="downloadReport()">⬇️ Download PDF Report</button>
+                        <button class="btn-success" style="margin-left: 12px;" onclick="emailReport()">📧 Email Report</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function generateDailyTimeline() {
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+            return days.map(day => `
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-content">
+                        <strong style="color: var(--dark);">${day}</strong>
+                        <div style="color: #64748b; font-size: 0.9em; margin-top: 4px;">
+                            Active: 7.2h • Idle: 0.8h • Productivity: ${85 + Math.floor(Math.random() * 10)}%
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function viewEmployeeTimeline(empId) {
+            alert('📅 Employee Timeline View\n\nShowing detailed activity timeline for the selected employee including:\n\n• Clock in/out times\n• Application switches\n• Website visits\n• Active/idle periods\n• Breaks taken\n\nThis feature would display a visual timeline chart.');
+        }
+
+        function viewDetailedReport(empId) {
+            const emp = employees.find(e => e.id === empId);
+            alert(`📊 Detailed Activity Report\n\n👤 Employee: ${emp.name}\n\n📈 Today's Summary:\n• Status: ${emp.status}\n• Active Time: ${emp.activeTime.toFixed(1)} hours\n• Idle Time: ${emp.idleTime.toFixed(1)} hours\n• Productivity Score: ${emp.productivity}%\n• Current Activity: ${emp.currentActivity}\n\nFull report with charts and breakdowns would be displayed here.`);
+        }
+
+        function refreshData() {
+            generateActivityLogs();
+            updateDashboard();
+            renderEmployees();
+            alert('🔄 Data refreshed successfully!');
+        }
+
+        function saveSettings() {
+            const workStart = document.getElementById('workStart').value;
+            const workEnd = document.getElementById('workEnd').value;
+            const idleTimeout = document.getElementById('idleTimeout').value;
+            
+            alert(`✅ Settings Saved!\n\nWork Hours: ${workStart} - ${workEnd}\nIdle Timeout: ${idleTimeout} minutes\n\nThese settings will be applied to all tracking sessions.`);
+        }
+
+        function downloadReport() {
+            alert('⬇️ Downloading Report...\n\nGenerating PDF report with:\n• Activity summary\n• Time tracking data\n• Application usage\n• Productivity metrics\n• Charts and graphs\n\nReport would be downloaded as PDF file.');
+        }
+
+        function emailReport() {
+            alert('📧 Email Report\n\nReport will be sent to:\n• Employee\n• Manager\n• HR Department\n\nEmail will include detailed activity summary and performance metrics.');
+        }
+
+        // Populate employee select for reports
+        function populateReportSelect() {
+            const select = document.getElementById('reportEmployee');
+            employees.forEach(emp => {
+                const option = document.createElement('option');
+                option.value = emp.id;
+                option.textContent = emp.name;
+                select.appendChild(option);
+            });
+        }
+
+        // Initialize on load
+        initializeTracking();
+        populateReportSelect();
+
+        // Simulate live updates every 30 seconds
+        setInterval(() => {
+            // Update random employee activity
+            const randomEmp = employees[Math.floor(Math.random() * employees.length)];
+            randomEmp.activeTime += 0.01;
+            randomEmp.lastActive = new Date();
+            
+            // Add new activity log
+            const activities = ['Typing in VS Code', 'Browsing documentation', 'Reading emails', 'In video call'];
+            const newLog = {
+                type: 'activity',
+                text: activities[Math.floor(Math.random() * activities.length)],
+                icon: '💻',
+                employee: randomEmp.name,
+                time: new Date(),
+                timeStr: new Date().toLocaleTimeString()
+            };
+            activityLogs.unshift(newLog);
+            activityLogs = activityLogs.slice(0, 50);
+            
+            updateDashboard();
+            if (document.querySelector('#live.active')) {
+                updateLiveFeed();
+            }
+            if (document.querySelector('#employees.active')) {
+                renderEmployees();
+            }
+        }, 30000);
+    </script>
+</body>
+</html>
